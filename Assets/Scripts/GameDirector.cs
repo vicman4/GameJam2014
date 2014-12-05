@@ -1,0 +1,91 @@
+﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class GameDirector : MonoBehaviour {
+
+	public GameObject playerPrefab;
+
+	public Vector3 mapStartPosition = Vector3.zero;
+	public GameObject spawnBlockPrefab;
+	public GameObject exitBlockPrefab;
+	public GameObject[] blocksPrefabs;
+	
+	public float blockWidth=20.0f;
+	public float blockHeight=1.0f;	
+	public float widthSizeInBlocks = 4.0f;
+	public float heightSizeInBlocks = 4.0f;
+	public float verticalMarginInBlocks = 10.0f;
+	
+	private List<Vector3> levelsStartPoints;
+	private BlockEndExitController lastGeneratedExit;
+	private List<Vector3> levelsTimeTravelPoints;
+	
+	private int actualStartPoint;
+	private Vector3 nextBlockPosition;
+
+	private GameObject player;
+
+	void Start () {
+		lastGeneratedExit = null;
+		levelsStartPoints = new List<Vector3>();
+		levelsTimeTravelPoints = new List<Vector3>();
+		
+		nextBlockPosition = GenerateMapAt(mapStartPosition);
+		player = (GameObject)Instantiate(playerPrefab, nextBlockPosition, Quaternion.identity);
+		player.transform.position = levelsStartPoints[0];
+	}
+	
+	void Update () {
+		if (Input.GetKey(KeyCode.KeypadPlus)) {
+			nextBlockPosition = GenerateMapAt(nextBlockPosition);
+		}
+	
+	}
+	
+	
+	Vector3 GenerateMapAt(Vector3 initialPosition) {
+		Debug.Log("Map Generation Starts...");
+		nextBlockPosition = initialPosition;
+		for (int level=0; level < heightSizeInBlocks; level++) {
+		
+			// Generando Bloque de Inicio/Spawn
+			Debug.Log("Generando bloque de inicio de Level");
+			GameObject nextBlock = (GameObject)Instantiate(spawnBlockPrefab, nextBlockPosition, Quaternion.identity);
+			Vector3 spawnPosition = nextBlock.transform.GetChild(0).position; // Buscamos la posicion de Spawn de este nivel
+			Debug.Log(spawnPosition);
+			Debug.Log (levelsStartPoints);
+			levelsStartPoints.Add(spawnPosition); // Guardamos la posición en la lista de posiciones Spawn
+			if (lastGeneratedExit != null) lastGeneratedExit.nextPosition = spawnPosition; // Si es el segundo nivel (y en adelante) enlazamos la salida anterior con este spawn
+			nextBlockPosition = new Vector3(nextBlockPosition.x + blockWidth, nextBlockPosition.y, nextBlockPosition.z);
+			
+			
+			// Generación de bloques/trampas intermedios/as
+			Debug.Log("Generando bloques/trampas de level");
+			for (int cell=1; cell < (widthSizeInBlocks-1); cell++) {
+				int nextBlockIndex = Random.Range(0, blocksPrefabs.Length);
+				nextBlock = (GameObject)Instantiate(blocksPrefabs[nextBlockIndex], nextBlockPosition, Quaternion.identity);
+				nextBlockPosition = new Vector3(nextBlockPosition.x + blockWidth, nextBlockPosition.y, nextBlockPosition.z);
+			}
+			
+			// Generando Bloque de Salida/Exit
+			Debug.Log("Generando bloque de Salida de Level");
+			nextBlock = (GameObject)Instantiate(exitBlockPrefab, nextBlockPosition, Quaternion.identity);
+			lastGeneratedExit = nextBlock.GetComponentInChildren<BlockEndExitController>(); // Guardamos la última salida generada
+			if (level == (heightSizeInBlocks-1)) {
+				lastGeneratedExit.autoGenerateMap = true;
+				lastGeneratedExit.gameDirector = this;
+			}
+			
+			nextBlockPosition = new Vector3(initialPosition.x, nextBlockPosition.y - (blockHeight * verticalMarginInBlocks), nextBlockPosition.z);
+		}
+		nextBlockPosition = new Vector3(initialPosition.x, nextBlockPosition.y - (blockHeight * verticalMarginInBlocks), nextBlockPosition.z);
+		Debug.Log("Map Generation Ends...");
+		return nextBlockPosition;
+	}
+	
+	public void AutoGenerateMap() {
+		nextBlockPosition = GenerateMapAt(nextBlockPosition);	
+	}
+	
+}
