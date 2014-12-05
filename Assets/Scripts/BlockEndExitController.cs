@@ -11,7 +11,7 @@ public class BlockEndExitController : MonoBehaviour {
 		if (autoGenerateMap == true) {
 			Debug.Log(gameDirector);
 			Debug.Log("Auto Generar Mapa!");
-			gameDirector.AutoGenerateMap();
+			nextPosition = gameDirector.AutoGenerateMap();
 		}
 		
 		other.transform.position = nextPosition;
