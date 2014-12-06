@@ -12,7 +12,9 @@ public class GameDirector : MonoBehaviour {
 	public GameObject[] interactiveBlocks;				// Bloques con interruptores que afectan a bloques de niveles del futuro
 	public GameObject[]	trapsBlocks;					// Bloques con trampas del nivel actual
 	public GameObject[]	neutralBlocks;					// Bloques neutrales del nivel actual
-	
+
+	public GameObject[]	tmp;					// Bloques neutrales del nivel actual
+
 	public int interactiveBlocksPerLevel = 1;			// Numero de bloques interactivos del futuro por nivel
 	public int trapsBlocksPerLevel = 2;					// Numero de trampas en el nivel actual por nivel
 	
@@ -81,6 +83,8 @@ public class GameDirector : MonoBehaviour {
 		player = (GameObject)Instantiate(playerPrefab, nextBlockPosition, Quaternion.identity);
 		player.transform.position = map[0].SpawnPosition();
 		transform.parent = player.transform;
+
+		tmp = (GameObject[])Resources.LoadAll<GameObject>("Resources/Prefabs/LevelBlocks/InteractuveFuture");
 	}
 	
 	void Update () {
