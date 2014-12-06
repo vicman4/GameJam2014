@@ -9,7 +9,12 @@ public class GameDirector : MonoBehaviour {
 	public Vector3 mapStartPosition = Vector3.zero;
 	public GameObject spawnBlockPrefab;
 	public GameObject exitBlockPrefab;
-	public GameObject[] blocksPrefabs;
+	public GameObject[] interactiveBlocks;				// Bloques con interruptores que afectan a bloques de niveles del futuro
+	public GameObject[]	trapsBlocks;					// Bloques con trampas del nivel actual
+	public GameObject[]	neutralBlocks;					// Bloques neutrales del nivel actual
+	
+	public int interactiveBlocksPerLevel = 1;			// Numero de bloques interactivos del futuro por nivel
+	public int trapsBlocksPerLevel = 2;					// Numero de trampas en el nivel actual por nivel
 	
 	public float blockWidth=20.0f; 						// Ancho de los bloques en unidades Unity
 	public float blockHeight=1.0f; 						// Alto de los bloques en unidades Unity
@@ -17,9 +22,7 @@ public class GameDirector : MonoBehaviour {
 	public int heightSizeInBlocks = 4;					// Cuantos niveles se generan a la vez y cuantos se mantienen en memoria (el resto se eliminan)
 	public float verticalMarginInBlocks = 10.0f;		// Espacio en bloques que se deja entre niveles
 	
-	private List<Vector3> levelsStartPoints;			// Spawnpoints activos generados
 	private List<Vector3> levelsTimeTravelPoints;		// Puntos a los que se puede viajar en el tiempo
-	private BlockEndExitController lastGeneratedExit;	// Ultima salida generada sin punto de spawn
 	
 	private Vector3 nextBlockPosition;					// Posicion en la que se generara el proximo bloque
 	private GameObject player;							// Player generado
@@ -60,11 +63,16 @@ public class GameDirector : MonoBehaviour {
 			return blocks.ContainsKey(index);
 		}
 		
+		public GameObject GetBlockAt(int index) {
+			return blocks[index];
+		}
+		
 	}
+	
+	private int interactiveBlocksInThisLevel;
+	private int trapsBlocksInThisLevel;
 
 	void Start () {
-		lastGeneratedExit = null;
-		levelsStartPoints = new List<Vector3>();
 		levelsTimeTravelPoints = new List<Vector3>();
 		lastGeneratedLevel = 0;
 		map = new List<Level>();
@@ -80,7 +88,6 @@ public class GameDirector : MonoBehaviour {
 			nextBlockPosition = GenerateMapAt(nextBlockPosition);
 		}
 	}
-	
 	
 	Vector3 GenerateMapAt(Vector3 initialPosition) {
 	
@@ -105,6 +112,8 @@ public class GameDirector : MonoBehaviour {
 		
 		// Rellenamos los niveles con bloques
 		for (int level=0; level < heightSizeInBlocks; level++) {
+			interactiveBlocksInThisLevel = 0;
+			trapsBlocksInThisLevel = 0;
 			
 			// Generando Bloque de Inicio/Spawn
 			Debug.Log("Generando bloque de inicio de Level");
@@ -118,27 +127,69 @@ public class GameDirector : MonoBehaviour {
 			// Generación de bloques/trampas intermedios/as
 			Debug.Log("Generando bloques/trampas de level");
 			for (int cell=1; cell < (widthSizeInBlocks-1); cell++) {
-				int nextBlockIndex = Random.Range(0, blocksPrefabs.Length);
-				nextBlock = (GameObject)Instantiate(blocksPrefabs[nextBlockIndex], nextBlockPosition, Quaternion.identity);
-				// TODO: Comprobar si existe bloque en la posicion antes de añadir este
-				if (!map[level].ExistsBlockAt(cell)) {
+				GameObject affectedBlock = null;
+			
+				if (!map[level].ExistsBlockAt(cell)) { // Comprobamos que no existe ya un bloque en la posicion
+					nextBlock = null;
+					int nextBlockIndex = -1;
+					while (nextBlock == null) {
+						switch (Random.Range(0,3)) {
+							case 0:
+								// Bloque de tipo neutral
+								nextBlockIndex = Random.Range(0, neutralBlocks.Length);
+								nextBlock = (GameObject)Instantiate(neutralBlocks[nextBlockIndex], nextBlockPosition, Quaternion.identity);
+								break;
+							case 1: 
+								// Bloque de tipo switch Interactivo del futuro
+								// No los permitimos si se supera el limite por nivel
+								// No los permitimos si estamos en el ultimo nivel de la 'ventana' de niveles
+								if (interactiveBlocksInThisLevel < interactiveBlocksPerLevel && level < heightSizeInBlocks-1) {
+									nextBlockIndex = Random.Range(0, interactiveBlocks.Length);
+									nextBlock = (GameObject)Instantiate(interactiveBlocks[nextBlockIndex], nextBlockPosition, Quaternion.identity);
+									interactiveBlocksInThisLevel += 1;
+								}
+								break;
+							case 2:
+								// Bloque de tipo trampa de nivel actual
+								if (trapsBlocksInThisLevel < trapsBlocksPerLevel) {
+									nextBlockIndex = Random.Range(0, trapsBlocks.Length);
+									nextBlock = (GameObject)Instantiate(trapsBlocks[nextBlockIndex], nextBlockPosition, Quaternion.identity);
+									trapsBlocksInThisLevel += 1;
+								}
+								break;
+						}
+					}
 					map[level].AddBlockAt(nextBlock, cell); // Guardamos el bloque en el nivel completo
+					
 					InteractiveBlockController interactiveController = nextBlock.GetComponent<InteractiveBlockController>();
-					// Bloque interactivo: Generamos el bloque sobre el que actúa
-					if (interactiveController != null) {
+					if (interactiveController != null) { // Si se trata de un bloque interactivo con el futuro, generamos su bloque del futuro
 						if (interactiveController.affectedBlockPrefab != null) {
-							if (interactiveController.maxLevelsDistance > 0) {
+						
+							if (interactiveController.maxLevelsDistance > 0) { // Distancia vertical maxima
+							
+								// TODO: La distancia vertical no puede ser superior a los niveles que quedan en la ventana
+								Debug.Log ("Interactive: Affected max levels distance: "+interactiveController.maxLevelsDistance);
 								int affectedBlockLevel = Random.Range(1,interactiveController.maxLevelsDistance);
-								Vector3 affectedBlockPosition = new Vector3(initialPosition.x + (cell * blockWidth), nextBlockPosition.y - ((blockHeight * verticalMarginInBlocks) * affectedBlockLevel), nextBlockPosition.z);
-								GameObject affectedBlock = (GameObject)Instantiate(interactiveController.affectedBlockPrefab, affectedBlockPosition, Quaternion.identity);
-								map[level+affectedBlockLevel].AddBlockAt(affectedBlock,cell); // Guardamos el bloque de spawn en el primer bloque del level	
-								interactiveController.SetAffectedBlock(affectedBlock.GetComponent<AffectedBlockController>());
-								
+								Debug.Log("Ramdom level: "+affectedBlockLevel);
+								affectedBlockLevel = Mathf.Clamp(affectedBlockLevel+level, level+1, heightSizeInBlocks-1);
+								Debug.Log ("Heigh Size: "+heightSizeInBlocks);
+								Debug.Log ("Level actual: "+level);
+								Debug.Log ("Affected Level: "+(affectedBlockLevel));
+								if (!map[affectedBlockLevel].ExistsBlockAt(cell)) {
+									Vector3 affectedBlockPosition = new Vector3(initialPosition.x + (cell * blockWidth), nextBlockPosition.y - ((blockHeight * verticalMarginInBlocks) * (affectedBlockLevel-level)), nextBlockPosition.z);
+									affectedBlock = (GameObject)Instantiate(interactiveController.affectedBlockPrefab, affectedBlockPosition, Quaternion.identity);
+									map[affectedBlockLevel].AddBlockAt(affectedBlock,cell); // Guardamos el bloque de spawn en el primer bloque del level	
+									interactiveController.SetAffectedBlock(affectedBlock.GetComponent<AffectedBlockController>());
+								} else {
+									affectedBlock = map[affectedBlockLevel].GetBlockAt(cell);
+									Debug.Log("Ya existe un bloque ¿afectado? en la posicion: "+affectedBlockLevel+"|"+cell);
+									Debug.Log(affectedBlock);
+								}
+								Debug.Log(affectedBlock);
 							}
 						}
 					}
 				}
-				// TODO: Añadir bloque affectedBlock si no es null (random de altura maxLevels... y random horizontal max..)
 				nextBlockPosition = new Vector3(nextBlockPosition.x + blockWidth, nextBlockPosition.y, nextBlockPosition.z);
 			}
 			
