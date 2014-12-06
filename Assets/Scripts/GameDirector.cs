@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class GameDirector : MonoBehaviour {
 
@@ -75,6 +76,11 @@ public class GameDirector : MonoBehaviour {
 	private int trapsBlocksInThisLevel;
 
 	void Start () {
+
+		interactiveBlocks = Resources.LoadAll ("Prefabs/LevelBlocks/InteractiveFuture", typeof(GameObject)).Cast<GameObject>().ToArray();			
+		trapsBlocks = Resources.LoadAll ("Prefabs/LevelBlocks/Traps", typeof(GameObject)).Cast<GameObject>().ToArray();					
+		neutralBlocks = Resources.LoadAll ("Prefabs/LevelBlocks/Neutrals", typeof(GameObject)).Cast<GameObject> ().ToArray ();
+
 		levelsTimeTravelPoints = new List<Vector3>();
 		lastGeneratedLevel = 0;
 		map = new List<Level>();
@@ -84,7 +90,14 @@ public class GameDirector : MonoBehaviour {
 		player.transform.position = map[0].SpawnPosition();
 		transform.parent = player.transform;
 
-		tmp = (GameObject[])Resources.LoadAll<GameObject>("Resources/Prefabs/LevelBlocks/InteractuveFuture");
+		foreach(GameObject g in Resources.LoadAll("Prefabs/LevelBlocks/Traps", typeof(GameObject)))
+		{
+			Debug.Log("prefab found: " + g.name);
+			//tmp.Add(g);
+		}
+
+
+	
 	}
 	
 	void Update () {
@@ -104,7 +117,7 @@ public class GameDirector : MonoBehaviour {
 			Debug.Log("Deleting previous levels!");
 		}
 		
-		Debug.Log("Map Generation Starts...");
+		//Debug.Log("Map Generation Starts...");
 		nextBlockPosition = initialPosition;
 		
 		
@@ -120,7 +133,7 @@ public class GameDirector : MonoBehaviour {
 			trapsBlocksInThisLevel = 0;
 			
 			// Generando Bloque de Inicio/Spawn
-			Debug.Log("Generando bloque de inicio de Level");
+			//Debug.Log("Generando bloque de inicio de Level");
 			GameObject nextBlock = (GameObject)Instantiate(spawnBlockPrefab, nextBlockPosition, Quaternion.identity);
 			map[level].AddBlockAt(nextBlock,0); // Guardamos el bloque de spawn en el primer bloque del level
 			Vector3 spawnPosition = nextBlock.transform.GetChild(0).position; // Buscamos la posicion de Spawn de este nivel
@@ -129,7 +142,7 @@ public class GameDirector : MonoBehaviour {
 			nextBlockPosition = new Vector3(nextBlockPosition.x + blockWidth, nextBlockPosition.y, nextBlockPosition.z);
 			
 			// Generación de bloques/trampas intermedios/as
-			Debug.Log("Generando bloques/trampas de level");
+			//Debug.Log("Generando bloques/trampas de level");
 			for (int cell=1; cell < (widthSizeInBlocks-1); cell++) {
 				GameObject affectedBlock = null;
 			
@@ -172,13 +185,13 @@ public class GameDirector : MonoBehaviour {
 							if (interactiveController.maxLevelsDistance > 0) { // Distancia vertical maxima
 							
 								// TODO: La distancia vertical no puede ser superior a los niveles que quedan en la ventana
-								Debug.Log ("Interactive: Affected max levels distance: "+interactiveController.maxLevelsDistance);
+								//Debug.Log ("Interactive: Affected max levels distance: "+interactiveController.maxLevelsDistance);
 								int affectedBlockLevel = Random.Range(1,interactiveController.maxLevelsDistance);
 								Debug.Log("Ramdom level: "+affectedBlockLevel);
 								affectedBlockLevel = Mathf.Clamp(affectedBlockLevel+level, level+1, heightSizeInBlocks-1);
-								Debug.Log ("Heigh Size: "+heightSizeInBlocks);
-								Debug.Log ("Level actual: "+level);
-								Debug.Log ("Affected Level: "+(affectedBlockLevel));
+								//Debug.Log ("Heigh Size: "+heightSizeInBlocks);
+								//Debug.Log ("Level actual: "+level);
+								//Debug.Log ("Affected Level: "+(affectedBlockLevel));
 								if (!map[affectedBlockLevel].ExistsBlockAt(cell)) {
 									Vector3 affectedBlockPosition = new Vector3(initialPosition.x + (cell * blockWidth), nextBlockPosition.y - ((blockHeight * verticalMarginInBlocks) * (affectedBlockLevel-level)), nextBlockPosition.z);
 									affectedBlock = (GameObject)Instantiate(interactiveController.affectedBlockPrefab, affectedBlockPosition, Quaternion.identity);
@@ -186,10 +199,10 @@ public class GameDirector : MonoBehaviour {
 									interactiveController.SetAffectedBlock(affectedBlock.GetComponent<AffectedBlockController>());
 								} else {
 									affectedBlock = map[affectedBlockLevel].GetBlockAt(cell);
-									Debug.Log("Ya existe un bloque ¿afectado? en la posicion: "+affectedBlockLevel+"|"+cell);
-									Debug.Log(affectedBlock);
+									//Debug.Log("Ya existe un bloque ¿afectado? en la posicion: "+affectedBlockLevel+"|"+cell);
+									//Debug.Log(affectedBlock);
 								}
-								Debug.Log(affectedBlock);
+								//Debug.Log(affectedBlock);
 							}
 						}
 					}
@@ -198,7 +211,7 @@ public class GameDirector : MonoBehaviour {
 			}
 			
 			// Generando Bloque de Salida/Exit
-			Debug.Log("Generando bloque de Salida de Level");
+			//Debug.Log("Generando bloque de Salida de Level");
 			nextBlock = (GameObject)Instantiate(exitBlockPrefab, nextBlockPosition, Quaternion.identity);
 			map[level].AddBlockAt(nextBlock, widthSizeInBlocks-1); // Guardamos el bloque en el nivel completo
 			BlockEndExitController exitController = nextBlock.GetComponentInChildren<BlockEndExitController>(); // Guardamos la última salida generada
@@ -212,7 +225,7 @@ public class GameDirector : MonoBehaviour {
 			nextBlockPosition = new Vector3(initialPosition.x, nextBlockPosition.y - (blockHeight * verticalMarginInBlocks), nextBlockPosition.z);
 		}
 		nextBlockPosition = new Vector3(initialPosition.x, nextBlockPosition.y - (blockHeight * verticalMarginInBlocks), nextBlockPosition.z);
-		Debug.Log("Map Generation Ends...");
+		//Debug.Log("Map Generation Ends...");
 		return nextBlockPosition;
 	}
 	
