@@ -58,6 +58,7 @@ public class GameDirector : MonoBehaviour {
 		public int BlocksCount() {
 			return blocks.Count;
 		}
+		
 	}
 
 	void Start () {
