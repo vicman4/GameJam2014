@@ -4,6 +4,7 @@ using System.Collections;
 public class AffectedItemScript : MonoBehaviour {
 
 	public bool useAnimation = false; //Definimos si al activar vamos a activar una animacion
+	public bool useToggle = false;
 
 
 	Animator animator;  // La variable de la animación será un booleano activate
