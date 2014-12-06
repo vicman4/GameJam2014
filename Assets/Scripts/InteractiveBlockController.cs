@@ -7,29 +7,19 @@ public class InteractiveBlockController : MonoBehaviour {
 	public AudioClip soundAid;						// Pista sonora
 	public Color color = Color.blue;				// Color de conexión con el affectedController
 	
-	public GameObject affectedBlock; // Instancia del prefab con el que interacciona
+	public AffectedBlockController affectedBlockController;
 	
-	private AffectedBlockController affectedBlockController;
-	
-	void Start() {
-		affectedBlockController = affectedBlock.GetComponent<AffectedBlockController>();
-		
-
+	public void SetAffectedBlock(AffectedBlockController affectedController) {
+		affectedBlockController = affectedController;
+		foreach (InteractiveItemScript itemScript in transform.GetComponentsInChildren<InteractiveItemScript>()) {
+			itemScript.affectedBlockController = affectedBlockController.transform.GetComponent<AffectedBlockController>();
+		}
 	}
-
-
-	//void OnCollisionEnter(Collision other) {
-		// TODO: hacer que suene la pista sonora
-	//}
-
-
-
-
 
 	void OnDrawGizmos() {
 		Gizmos.color = color;
-		if (affectedBlock != null) {
-			Gizmos.DrawLine(transform.position, affectedBlock.transform.position);
+		if (affectedBlockController != null) {
+			Gizmos.DrawLine(transform.position, affectedBlockController.transform.position);
 				}
 
 	

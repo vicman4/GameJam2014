@@ -27,24 +27,21 @@ public class GameDirector : MonoBehaviour {
 	
 	private List<Level> map;							// Mapa: contiene todos los niveles que genera el juego
 	private class Level {								// Level: contiene los bloques que componen un nivel
-		private List<GameObject> blocks;
+		private Dictionary<int,GameObject> blocks;
 		
 		public Level() {
-			blocks = new List<GameObject>();
+			blocks = new Dictionary<int, GameObject>();
 		}
 		
 		public void ClearLevel() {
-			blocks.ForEach( b => {
-				Destroy(b);
-			});
-		}
-		
-		public void AddBlock(GameObject block) {
-			blocks.Add(block);
+			foreach(KeyValuePair<int, GameObject> b in blocks) {
+				Destroy(b.Value); // Eliminamos objeto de Unity
+			}
+			blocks.Clear(); // Limpiamos el diccionario
 		}
 		
 		public void AddBlockAt(GameObject block, int position) {
-			blocks.Insert(position, block);
+			blocks.Add(position, block);
 		}
 		
 		public BlockEndExitController Exit() {
@@ -57,6 +54,10 @@ public class GameDirector : MonoBehaviour {
 		
 		public int BlocksCount() {
 			return blocks.Count;
+		}
+		
+		public bool ExistsBlockAt(int index) {
+			return blocks.ContainsKey(index);
 		}
 		
 	}
@@ -108,7 +109,7 @@ public class GameDirector : MonoBehaviour {
 			// Generando Bloque de Inicio/Spawn
 			Debug.Log("Generando bloque de inicio de Level");
 			GameObject nextBlock = (GameObject)Instantiate(spawnBlockPrefab, nextBlockPosition, Quaternion.identity);
-			map[level].AddBlock(nextBlock); // Guardamos el bloque de spawn en el primer bloque del level
+			map[level].AddBlockAt(nextBlock,0); // Guardamos el bloque de spawn en el primer bloque del level
 			Vector3 spawnPosition = nextBlock.transform.GetChild(0).position; // Buscamos la posicion de Spawn de este nivel
 			
 			if (level > 0 && map[level-1].BlocksCount() > 1) map[level-1].Exit().nextPosition = spawnPosition; // Si hay una salida previa lo enlazamos con esta
@@ -120,7 +121,23 @@ public class GameDirector : MonoBehaviour {
 				int nextBlockIndex = Random.Range(0, blocksPrefabs.Length);
 				nextBlock = (GameObject)Instantiate(blocksPrefabs[nextBlockIndex], nextBlockPosition, Quaternion.identity);
 				// TODO: Comprobar si existe bloque en la posicion antes de añadir este
-				map[level].AddBlockAt(nextBlock, cell); // Guardamos el bloque en el nivel completo
+				if (!map[level].ExistsBlockAt(cell)) {
+					map[level].AddBlockAt(nextBlock, cell); // Guardamos el bloque en el nivel completo
+					InteractiveBlockController interactiveController = nextBlock.GetComponent<InteractiveBlockController>();
+					// Bloque interactivo: Generamos el bloque sobre el que actúa
+					if (interactiveController != null) {
+						if (interactiveController.affectedBlockPrefab != null) {
+							if (interactiveController.maxLevelsDistance > 0) {
+								int affectedBlockLevel = Random.Range(1,interactiveController.maxLevelsDistance);
+								Vector3 affectedBlockPosition = new Vector3(initialPosition.x + (cell * blockWidth), nextBlockPosition.y - ((blockHeight * verticalMarginInBlocks) * affectedBlockLevel), nextBlockPosition.z);
+								GameObject affectedBlock = (GameObject)Instantiate(interactiveController.affectedBlockPrefab, affectedBlockPosition, Quaternion.identity);
+								map[level+affectedBlockLevel].AddBlockAt(affectedBlock,cell); // Guardamos el bloque de spawn en el primer bloque del level	
+								interactiveController.SetAffectedBlock(affectedBlock.GetComponent<AffectedBlockController>());
+								
+							}
+						}
+					}
+				}
 				// TODO: Añadir bloque affectedBlock si no es null (random de altura maxLevels... y random horizontal max..)
 				nextBlockPosition = new Vector3(nextBlockPosition.x + blockWidth, nextBlockPosition.y, nextBlockPosition.z);
 			}
@@ -128,7 +145,7 @@ public class GameDirector : MonoBehaviour {
 			// Generando Bloque de Salida/Exit
 			Debug.Log("Generando bloque de Salida de Level");
 			nextBlock = (GameObject)Instantiate(exitBlockPrefab, nextBlockPosition, Quaternion.identity);
-			map[level].AddBlock(nextBlock); // Guardamos el bloque en el nivel completo
+			map[level].AddBlockAt(nextBlock, widthSizeInBlocks-1); // Guardamos el bloque en el nivel completo
 			BlockEndExitController exitController = nextBlock.GetComponentInChildren<BlockEndExitController>(); // Guardamos la última salida generada
 			
 			if (level == (heightSizeInBlocks-1)) { // Si es la salida del ultimo nivel a generar
