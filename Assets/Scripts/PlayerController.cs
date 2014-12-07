@@ -22,6 +22,8 @@ public class PlayerController : MonoBehaviour {
 	public Vector3 frontRayOffset;
 	public Vector3 downRayOffset;
 	
+	public GameDirector gameDirector;
+	
 	private RaycastHit frontRaycastHit;	
 	private RaycastHit downRaycastHit;	
 	
@@ -34,13 +36,6 @@ public class PlayerController : MonoBehaviour {
 		animController = GetComponent<Animator>();					  
 	}
 	
-	void Update() {
-		
-		
-		
-		
-	}
-
 	void FixedUpdate () {
 	
 		isFrontHit = Physics.Raycast (transform.position+frontRayOffset, transform.forward,out frontRaycastHit, frontRayRange, frontRayHitsOnLayers);
@@ -81,5 +76,12 @@ public class PlayerController : MonoBehaviour {
 			animController.SetFloat("Speed", 0);											
 		}
 		animController.speed = animSpeed;								
+	}
+	
+	
+	void OnCollisionEnter(Collision col) {
+		if (col.transform.tag == "Muerte") {
+			gameDirector.GameOver();
+		}
 	}
 }
