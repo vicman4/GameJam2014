@@ -27,6 +27,9 @@ public class GameDirector : MonoBehaviour {
 	
 	public Vector3 cameraTargetAdjustedPosition;
 	
+	public bool followTarget = true;
+	public bool lookAtTarget = true;
+	
 	private Transform playerTarget;
 	private int playerLevel;
 	
@@ -113,8 +116,8 @@ public class GameDirector : MonoBehaviour {
 	}
 	
 	void LateUpdate() {
-		transform.position = playerTarget.position + cameraTargetAdjustedPosition;
-		transform.LookAt(playerTarget);
+		if (followTarget) transform.position = playerTarget.position + cameraTargetAdjustedPosition;
+		if (lookAtTarget) transform.LookAt(playerTarget);
 	}
 	
 	Vector3 GenerateMapAt(Vector3 initialPosition) {
