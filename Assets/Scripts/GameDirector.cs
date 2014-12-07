@@ -5,17 +5,28 @@ using System.Linq;
 
 public class GameDirector : MonoBehaviour {
 
-	public GameObject playerPrefab;
+	private Transform playerTarget;						// Atajo al transfor del jugador
+	private List<Vector3> levelsTimeTravelPoints;		// Puntos a los que se puede viajar en el tiempo
+	private Vector3 nextBlockPosition;					// Posicion en la que se generara el proximo bloque
+	private GameObject player;							// Player generado
+	private int lastGeneratedLevel = 0;					// Indice (de map) del proximo nivel generado
+	private int interactiveBlocksInThisLevel;			// Contador interno del numero de bloques interactivos pintados en el nivel actual
+	private int trapsBlocksInThisLevel;					// Contador interno del numero de bloques trampa pintados en el nivel actual
+	private PlayerController playerController;			// Atajo al controller del jugador
+	private int playerMarksCount;						// Contador interno de marcas de tiempo usadas
+	private int playerTimeTravelsCount;					// Contador interno de viajes en el tiempo usados
+	private List<GameObject> travelMarks;				// Lista de marcas de viaje en el tiempo instanciadas
 
-	public Vector3 mapStartPosition = Vector3.zero;
-	public GameObject spawnBlockPrefab;
-	public GameObject exitBlockPrefab;
+
+	public GameObject playerPrefab;						// Prefab del personaje del jugador
+	public GameObject timeTravelMarkPrefab;				// Prefab que muestra una marca de viaje en el tiempo
+	public GameObject spawnBlockPrefab;					// Prefab del bloque inicial de cada nivel
+	public GameObject exitBlockPrefab;					// Prefab del bloque final de cada nivel
 	public GameObject[] interactiveBlocks;				// Bloques con interruptores que afectan a bloques de niveles del futuro
 	public GameObject[]	trapsBlocks;					// Bloques con trampas del nivel actual
 	public GameObject[]	neutralBlocks;					// Bloques neutrales del nivel actual
 
-	public GameObject[]	tmp;					// Bloques neutrales del nivel actual
-
+	public Vector3 mapStartPosition = Vector3.zero;		// Posicion de inicio de pintado del mapa
 	public int interactiveBlocksPerLevel = 1;			// Numero de bloques interactivos del futuro por nivel
 	public int trapsBlocksPerLevel = 2;					// Numero de trampas en el nivel actual por nivel
 	
@@ -25,22 +36,18 @@ public class GameDirector : MonoBehaviour {
 	public int heightSizeInBlocks = 4;					// Cuantos niveles se generan a la vez y cuantos se mantienen en memoria (el resto se eliminan)
 	public float verticalMarginInBlocks = 10.0f;		// Espacio en bloques que se deja entre niveles
 	
-	public Vector3 cameraTargetAdjustedPosition;
+	public Vector3 cameraTargetAdjustedPosition;		// Ajuste fino de la posicion de la camara
 	
-	public bool followTarget = true;
-	public bool lookAtTarget = true;
+	public bool followTarget = true;					// Si la camara sigue al jugador
+	public bool lookAtTarget = true;					// Si la camara mira constantemente al jugador
 	
-	private Transform playerTarget;
 	public int playerLevel;								// Nivel acumulado
 	public int playerMapLevel;							// Nivel dentro de la ventana del mapa
 	
-	private List<Vector3> levelsTimeTravelPoints;		// Puntos a los que se puede viajar en el tiempo
+	public int playerMaxTravelMarks = 3;				// Numero de marcas de viaje en el tiempo máximo
+	public int playerMaxTimeTravels = 3; 				// Numero máximo de viajes en el tiempo
 	
-	private Vector3 nextBlockPosition;					// Posicion en la que se generara el proximo bloque
-	private GameObject player;							// Player generado
-	private int lastGeneratedLevel = 0;					// Indice (de map) del proximo nivel generado
-	
-	public List<Level> map;							// Mapa: contiene todos los niveles que genera el juego
+	public List<Level> map;								// Mapa: contiene todos los niveles que genera el juego
 	public class Level {								// Level: contiene los bloques que componen un nivel
 		private Dictionary<int,GameObject> blocks;
 		
@@ -94,13 +101,13 @@ public class GameDirector : MonoBehaviour {
 		
 	}
 	
-	private int interactiveBlocksInThisLevel;
-	private int trapsBlocksInThisLevel;
 
 	void Start () {
 	
 		playerLevel = 0;
 		playerMapLevel = 0;
+		playerMarksCount = 0;
+		playerTimeTravelsCount = 0;
 
 		interactiveBlocks = Resources.LoadAll ("Prefabs/LevelBlocks/InteractiveFuture", typeof(GameObject)).Cast<GameObject>().ToArray();			
 		trapsBlocks = Resources.LoadAll ("Prefabs/LevelBlocks/Traps", typeof(GameObject)).Cast<GameObject>().ToArray();					
@@ -109,6 +116,7 @@ public class GameDirector : MonoBehaviour {
 		levelsTimeTravelPoints = new List<Vector3>();
 		lastGeneratedLevel = 0;
 		map = new List<Level>();
+		travelMarks = new List<GameObject>();
 		
 		nextBlockPosition = GenerateMapAt(mapStartPosition);
 		player = (GameObject)Instantiate(playerPrefab, nextBlockPosition, Quaternion.identity);
@@ -116,25 +124,21 @@ public class GameDirector : MonoBehaviour {
 		player.transform.position = map[0].SpawnPosition();
 		player.GetComponent<PlayerController>().gameDirector = this;
 		playerTarget = player.transform;
+		playerController = player.transform.GetComponent<PlayerController>();
 		map[0].TurnLights(true);
-
-		foreach(GameObject g in Resources.LoadAll("Prefabs/LevelBlocks/Traps", typeof(GameObject)))
-		{
-			Debug.Log("prefab found: " + g.name);
-			//tmp.Add(g);
-		}
-
-
-	
 	}
 	
-	void Update () {
-		if (Input.GetKey(KeyCode.Space)) {
-			nextBlockPosition = GenerateMapAt(nextBlockPosition);
+	void Update() {
+		if (Input.GetKey(KeyCode.Return)) {
+			
+			LeaveTimeTravelMark();
 		}
 	}
+	
+	
 	
 	void LateUpdate() {
+		// Seguir al jugador y/o Mirar al jugador
 		if (followTarget && player != null) transform.position = playerTarget.position + cameraTargetAdjustedPosition;
 		if (lookAtTarget && player != null) transform.LookAt(playerTarget);
 	}
@@ -272,5 +276,18 @@ public class GameDirector : MonoBehaviour {
 	public void GameOver() {
 		Debug.Log ("MUERTEEE!!!!");
 	}
+	
+	public void LeaveTimeTravelMark() {
+		if (playerMarksCount == playerMaxTravelMarks) { // Si se supera el limite de marcas, se elimina la primera (la mas lejana en el tiempo)
+			Destroy(travelMarks.ElementAt(0), 1.0f);
+			travelMarks.RemoveAt(0);
+		} else {
+			playerMarksCount += 1;
+		}
+		playerController.StopAndAction();
+		GameObject timeTravelMark = (GameObject)Instantiate(timeTravelMarkPrefab, player.transform.position, Quaternion.identity);
+		travelMarks.Add(timeTravelMark);
+	}
+	
 	
 }

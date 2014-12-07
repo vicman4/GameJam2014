@@ -84,4 +84,10 @@ public class PlayerController : MonoBehaviour {
 			gameDirector.GameOver();
 		}
 	}
+	
+	public void StopAndAction() {
+		animController.SetTrigger("StopAndAction");
+	}
+	
+	
 }
