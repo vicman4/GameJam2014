@@ -31,7 +31,8 @@ public class GameDirector : MonoBehaviour {
 	public bool lookAtTarget = true;
 	
 	private Transform playerTarget;
-	private int playerLevel;
+	public int playerLevel;								// Nivel acumulado
+	public int playerMapLevel;							// Nivel dentro de la ventana del mapa
 	
 	private List<Vector3> levelsTimeTravelPoints;		// Puntos a los que se puede viajar en el tiempo
 	
@@ -84,6 +85,9 @@ public class GameDirector : MonoBehaviour {
 	private int trapsBlocksInThisLevel;
 
 	void Start () {
+	
+		playerLevel = 0;
+		playerMapLevel = 0;
 
 		interactiveBlocks = Resources.LoadAll ("Prefabs/LevelBlocks/InteractiveFuture", typeof(GameObject)).Cast<GameObject>().ToArray();			
 		trapsBlocks = Resources.LoadAll ("Prefabs/LevelBlocks/Traps", typeof(GameObject)).Cast<GameObject>().ToArray();					
@@ -231,10 +235,11 @@ public class GameDirector : MonoBehaviour {
 			nextBlock = (GameObject)Instantiate(exitBlockPrefab, nextBlockPosition, Quaternion.identity);
 			map[level].AddBlockAt(nextBlock, widthSizeInBlocks-1); // Guardamos el bloque en el nivel completo
 			BlockEndExitController exitController = nextBlock.GetComponentInChildren<BlockEndExitController>(); // Guardamos la última salida generada
+			exitController.gameDirector = this;
+			exitController.mapIndex = level;
 			
 			if (level == (heightSizeInBlocks-1)) { // Si es la salida del ultimo nivel a generar
 				exitController.autoGenerateMap = true; // indicamos que la salida solicite autogenerar mas mapa
-				exitController.gameDirector = this;
 			}
 			
 			
