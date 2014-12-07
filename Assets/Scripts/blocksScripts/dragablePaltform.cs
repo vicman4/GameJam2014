@@ -3,18 +3,14 @@ using System.Collections;
 
 public class dragablePaltform : MonoBehaviour {
 	// Define some target to place object in. It can be any Collider
-	public Collider target;
-	public Vector3
-		screenPoint,
-		offset,
+	Vector3
 		scanPos,
-		curPosition,
-		curScreenPoint;
+		curPosition;
+	public float relativeMove = 0.1f;
 	public  Vector3 limitTop, limitDown, limitLeft, limitRigth;
 	
 	
-	float gridSize = 0.20f;
-	
+
 	void Start(){
 		limitLeft = transform.parent.Find ("left").position;
 		limitRigth = transform.parent.Find ("right").position;
@@ -24,27 +20,24 @@ public class dragablePaltform : MonoBehaviour {
 	}
 	
 	void OnMouseDown() {
-		scanPos = gameObject.transform.position;
-		screenPoint = Camera.main.WorldToScreenPoint(scanPos);
-		offset = scanPos - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z));
-		
+		scanPos = Input.mousePosition;
 	}
 	
 	
 	
 	
 	void OnMouseDrag() {
-		curScreenPoint = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
-		curPosition = Camera.main.ScreenToWorldPoint (curScreenPoint);// + offset;
-		
-		
-		//curPosition.x = (float)(Mathf.Round(curPosition.x) * gridSize);
-		if(limitLeft!= Vector3.zero && limitRigth!= Vector3.zero)
-			curPosition.x  = Mathf.Clamp(curPosition.x , limitLeft.x, limitRigth.x);
 
-		if(limitTop!= Vector3.zero && limitDown!= Vector3.zero)
-			curPosition.y  = Mathf.Clamp(curPosition.y , limitDown.y, limitTop.y);
+		
+		curPosition = Input.mousePosition;
+		curPosition = (curPosition - scanPos)*relativeMove;
+		//curPosition.x = (float)(Mathf.Round(curPosition.x) * gridSize);
+
+		curPosition.x  = Mathf.Clamp(curPosition.x+transform.position.x, limitLeft.x, limitRigth.x);
+		curPosition.y  = Mathf.Clamp(curPosition.y+transform.position.y, limitDown.y, limitTop.y);
+		curPosition.z = transform.position.z;
 		transform.position = curPosition;
+		scanPos = Input.mousePosition;
 	}
 
 }
