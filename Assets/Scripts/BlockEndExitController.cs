@@ -9,8 +9,6 @@ public class BlockEndExitController : MonoBehaviour {
 	void OnTriggerEnter(Collider other) {
 		
 		if (autoGenerateMap == true) {
-			Debug.Log(gameDirector);
-			Debug.Log("Auto Generar Mapa!");
 			nextPosition = gameDirector.AutoGenerateMap();
 		}
 		

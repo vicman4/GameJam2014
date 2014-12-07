@@ -25,6 +25,11 @@ public class GameDirector : MonoBehaviour {
 	public int heightSizeInBlocks = 4;					// Cuantos niveles se generan a la vez y cuantos se mantienen en memoria (el resto se eliminan)
 	public float verticalMarginInBlocks = 10.0f;		// Espacio en bloques que se deja entre niveles
 	
+	public Vector3 cameraTargetAdjustedPosition;
+	
+	private Transform playerTarget;
+	private int playerLevel;
+	
 	private List<Vector3> levelsTimeTravelPoints;		// Puntos a los que se puede viajar en el tiempo
 	
 	private Vector3 nextBlockPosition;					// Posicion en la que se generara el proximo bloque
@@ -87,8 +92,9 @@ public class GameDirector : MonoBehaviour {
 		
 		nextBlockPosition = GenerateMapAt(mapStartPosition);
 		player = (GameObject)Instantiate(playerPrefab, nextBlockPosition, Quaternion.identity);
+		player.transform.Rotate(0f, 90f, 0f);
 		player.transform.position = map[0].SpawnPosition();
-		transform.parent = player.transform;
+		playerTarget = player.transform;
 
 		foreach(GameObject g in Resources.LoadAll("Prefabs/LevelBlocks/Traps", typeof(GameObject)))
 		{
@@ -104,6 +110,11 @@ public class GameDirector : MonoBehaviour {
 		if (Input.GetKey(KeyCode.Space)) {
 			nextBlockPosition = GenerateMapAt(nextBlockPosition);
 		}
+	}
+	
+	void LateUpdate() {
+		transform.position = playerTarget.position + cameraTargetAdjustedPosition;
+		transform.LookAt(playerTarget);
 	}
 	
 	Vector3 GenerateMapAt(Vector3 initialPosition) {
