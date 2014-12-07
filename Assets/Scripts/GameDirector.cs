@@ -97,6 +97,7 @@ public class GameDirector : MonoBehaviour {
 		player = (GameObject)Instantiate(playerPrefab, nextBlockPosition, Quaternion.identity);
 		player.transform.Rotate(0f, 90f, 0f);
 		player.transform.position = map[0].SpawnPosition();
+		player.GetComponent<PlayerController>().gameDirector = this;
 		playerTarget = player.transform;
 
 		foreach(GameObject g in Resources.LoadAll("Prefabs/LevelBlocks/Traps", typeof(GameObject)))
@@ -247,6 +248,10 @@ public class GameDirector : MonoBehaviour {
 	public Vector3 AutoGenerateMap() {
 		nextBlockPosition = GenerateMapAt(nextBlockPosition);	
 		return map[0].SpawnPosition();
+	}
+	
+	public void GameOver() {
+		Debug.Log ("MUERTEEE!!!!");
 	}
 	
 }
