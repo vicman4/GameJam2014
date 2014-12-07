@@ -4,16 +4,82 @@ using System.Collections;
 public class PlayerController : MonoBehaviour {
 
 	private Animator animController;							
-	public float animSpeed = 1.5f;				
+	public float animSpeed = 1f;				
 	public Vector3 lookTarget;
+	
+	public bool grounded;
+	public bool frontBlocked;
+	
+	public bool isDownHit;
+	public bool isFrontHit;
+	
+	public LayerMask frontRayHitsOnLayers;
+	public LayerMask downRayHitsOnLayers;
+	
+	public float frontRayRange;
+	public float downRayRange;
+	
+	public Vector3 frontRayOffset;
+	public Vector3 downRayOffset;
+	
+	private RaycastHit frontRaycastHit;	
+	private RaycastHit downRaycastHit;	
+	
+	public bool stop = false;
+	
+	private Color frontRayColor;
+	private Color downRayColor;
 	
 	void Start () {
 		animController = GetComponent<Animator>();					  
 	}
+	
+	void Update() {
+		
+		
+		
+		
+	}
 
 	void FixedUpdate () {
-		float h = Input.GetAxis("Horizontal");				// setup h variable as our horizontal input axis
-		animController.SetFloat("Speed", 1);							// set our animator's float parameter 'Speed' equal to the vertical input axis				
-		animController.speed = animSpeed;								// set the speed of our animator to the public variable 'animSpeed'
+	
+		isFrontHit = Physics.Raycast (transform.position+frontRayOffset, transform.forward,out frontRaycastHit, frontRayRange, frontRayHitsOnLayers);
+		if (isFrontHit) {
+			if (frontRaycastHit.transform.tag == "Ground") {
+				frontRayColor = Color.red;
+				frontBlocked = true;
+			}
+		} else {
+			frontRayColor = Color.green;
+			frontBlocked = false;
+		}
+		Debug.DrawRay(transform.position + frontRayOffset, transform.forward  * frontRayRange, frontRayColor);
+		
+		isDownHit = Physics.Raycast (transform.position+downRayOffset, Vector3.down,out downRaycastHit, downRayRange, downRayHitsOnLayers);
+		if (isDownHit) {
+			if (downRaycastHit.transform.tag == "Ground") {
+				downRayColor = Color.green;
+				grounded = true;
+				animController.SetBool("JumpDown", false);
+			}
+		} else {
+			downRayColor = Color.red;
+			grounded = false;
+			animController.SetBool("JumpDown", true);
+		}
+		Debug.DrawRay(transform.position + downRayOffset, Vector3.down  * downRayRange, downRayColor);
+	
+		if (frontBlocked || !grounded) {
+			stop = true;
+		} else {
+			stop = false;
+		}
+	
+		if (!stop) {
+			animController.SetFloat("Speed", 1);							
+		} else {
+			animController.SetFloat("Speed", 0);											
+		}
+		animController.speed = animSpeed;								
 	}
 }
