@@ -11,11 +11,13 @@ public class BlockEndExitController : MonoBehaviour {
 		
 		if (autoGenerateMap == true) {
 			nextPosition = gameDirector.AutoGenerateMap();
+			gameDirector.playerMapLevel = 0;
+			gameDirector.map[0].TurnLights(true);
+		} else {
+			gameDirector.playerLevel += 1;
+			gameDirector.map[mapIndex].TurnLights(false);
+			gameDirector.map[mapIndex+1].TurnLights(true);
 		}
-		
-		gameDirector.playerLevel += 1;
-		gameDirector.playerMapLevel = mapIndex+1;
-		
 		other.transform.position = nextPosition;
 	}
 }

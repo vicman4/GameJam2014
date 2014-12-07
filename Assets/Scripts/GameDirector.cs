@@ -40,8 +40,8 @@ public class GameDirector : MonoBehaviour {
 	private GameObject player;							// Player generado
 	private int lastGeneratedLevel = 0;					// Indice (de map) del proximo nivel generado
 	
-	private List<Level> map;							// Mapa: contiene todos los niveles que genera el juego
-	private class Level {								// Level: contiene los bloques que componen un nivel
+	public List<Level> map;							// Mapa: contiene todos los niveles que genera el juego
+	public class Level {								// Level: contiene los bloques que componen un nivel
 		private Dictionary<int,GameObject> blocks;
 		
 		public Level() {
@@ -79,6 +79,19 @@ public class GameDirector : MonoBehaviour {
 			return blocks[index];
 		}
 		
+		public void TurnLights(bool on) {
+			if (on) {
+				foreach(KeyValuePair<int, GameObject> b in blocks) {
+					Transform lamp = b.Value.transform.Cast<Transform>().Where(c=>c.gameObject.name == "Lamp").ToArray()[0];
+					lamp.GetComponentsInChildren<Animation>()[0].Play();
+				}
+			} else {
+				foreach(KeyValuePair<int, GameObject> b in blocks) {
+					b.Value.transform.Cast<Transform>().Where(c=>c.gameObject.name == "Lamp").ToArray()[0].GetComponentsInChildren<Light>()[0].enabled = false;
+				}
+			}
+		}
+		
 	}
 	
 	private int interactiveBlocksInThisLevel;
@@ -103,6 +116,7 @@ public class GameDirector : MonoBehaviour {
 		player.transform.position = map[0].SpawnPosition();
 		player.GetComponent<PlayerController>().gameDirector = this;
 		playerTarget = player.transform;
+		map[0].TurnLights(true);
 
 		foreach(GameObject g in Resources.LoadAll("Prefabs/LevelBlocks/Traps", typeof(GameObject)))
 		{
