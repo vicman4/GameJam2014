@@ -59,7 +59,7 @@ public class GameDirector : MonoBehaviour {
 		}
 		
 		public BlockEndExitController Exit() {
-			return blocks[blocks.Count-1].transform.GetChild(0).GetComponent<BlockEndExitController>();
+			return blocks[blocks.Count-1].transform.Cast<Transform>().Where(c=>c.gameObject.tag == "ExitPoint").ToArray()[0].GetComponent<BlockEndExitController>();
 		}
 		
 		public Vector3 SpawnPosition() {
@@ -116,8 +116,8 @@ public class GameDirector : MonoBehaviour {
 	}
 	
 	void LateUpdate() {
-		if (followTarget) transform.position = playerTarget.position + cameraTargetAdjustedPosition;
-		if (lookAtTarget) transform.LookAt(playerTarget);
+		if (followTarget && player != null) transform.position = playerTarget.position + cameraTargetAdjustedPosition;
+		if (lookAtTarget && player != null) transform.LookAt(playerTarget);
 	}
 	
 	Vector3 GenerateMapAt(Vector3 initialPosition) {
@@ -150,7 +150,8 @@ public class GameDirector : MonoBehaviour {
 			//Debug.Log("Generando bloque de inicio de Level");
 			GameObject nextBlock = (GameObject)Instantiate(spawnBlockPrefab, nextBlockPosition, Quaternion.identity);
 			map[level].AddBlockAt(nextBlock,0); // Guardamos el bloque de spawn en el primer bloque del level
-			Vector3 spawnPosition = nextBlock.transform.GetChild(0).position; // Buscamos la posicion de Spawn de este nivel
+			// Buscamos la posicion de Spawn de este nivel
+			Vector3 spawnPosition = nextBlock.transform.Cast<Transform>().Where(c=>c.gameObject.tag == "SpawnPoint").ToArray()[0].position;
 			
 			if (level > 0 && map[level-1].BlocksCount() > 1) map[level-1].Exit().nextPosition = spawnPosition; // Si hay una salida previa lo enlazamos con esta
 			nextBlockPosition = new Vector3(nextBlockPosition.x + blockWidth, nextBlockPosition.y, nextBlockPosition.z);
