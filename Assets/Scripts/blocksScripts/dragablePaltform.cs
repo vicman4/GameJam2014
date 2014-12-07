@@ -31,9 +31,7 @@ public class dragablePaltform : MonoBehaviour {
 		
 		curPosition = Input.mousePosition;
 		curPosition = (curPosition - scanPos)*relativeMove;
-		//curPosition.x = (float)(Mathf.Round(curPosition.x) * gridSize);
-
-		curPosition.x  = Mathf.Clamp(curPosition.x+transform.position.x, limitLeft.x, limitRigth.x);
+		curPosition.x  = Mathf.Clamp(curPosition.x+transform.position.x, limitLeft.x,limitRigth.x);
 		curPosition.y  = Mathf.Clamp(curPosition.y+transform.position.y, limitDown.y, limitTop.y);
 		curPosition.z = transform.position.z;
 		transform.position = curPosition;
