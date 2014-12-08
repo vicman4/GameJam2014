@@ -155,7 +155,7 @@ public class GameDirector : MonoBehaviour {
 		}
 		
 		if (Input.GetKey(KeyCode.Escape)) {
-			PanoramicVision(false);
+			Application.LoadLevel("Menu");
 		}
 
 
