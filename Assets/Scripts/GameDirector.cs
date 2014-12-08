@@ -59,7 +59,8 @@ public class GameDirector : MonoBehaviour {
 	
 	public int playerMaxTravelMarks = 3;				// Numero de marcas de viaje en el tiempo máximo
 	public int playerMaxTimeTravels = 3; 				// Numero máximo de viajes en el tiempo
-	
+	public float time_score ;
+
 	public List<Level> map;								// Mapa: contiene todos los niveles que genera el juego
 	public class Level {								// Level: contiene los bloques que componen un nivel
 		private Dictionary<int,GameObject> blocks;
@@ -156,6 +157,8 @@ public class GameDirector : MonoBehaviour {
 		if (Input.GetKey(KeyCode.Escape)) {
 			PanoramicVision(false);
 		}
+
+
 	}
 	
 	
@@ -164,6 +167,8 @@ public class GameDirector : MonoBehaviour {
 		// Seguir al jugador y/o Mirar al jugador
 		if (followTarget && player != null) transform.position = playerTarget.position + cameraTargetAdjustedPosition;
 		if (lookAtTarget && player != null) transform.LookAt(playerTarget);
+
+
 	}
 	
 	Vector3 GenerateMapAt(Vector3 initialPosition) {
@@ -301,6 +306,7 @@ public class GameDirector : MonoBehaviour {
 	}
 	
 	public void GameOver() {
+		time_score = Time.timeSinceLevelLoad;
 		if (doppelganger != null) {	// Ha muerto el doppleganger
 			GameObject effect = (GameObject)Instantiate(deadDoppelgangerEffectPrefab, doppelganger.transform.position, Quaternion.identity);
 			PanoramicTravelDoppelgangerDie();
@@ -319,6 +325,8 @@ public class GameDirector : MonoBehaviour {
 				// SHOW UI STATS
 			}
 		}
+
+
 	}
 	
 	public void LeaveTimeTravelMark() {
