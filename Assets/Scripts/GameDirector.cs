@@ -322,6 +322,7 @@ public class GameDirector : MonoBehaviour {
 					});
 				});
 			} else {
+				Application.LoadLevel("Menu");
 				// SHOW UI STATS
 			}
 		}
