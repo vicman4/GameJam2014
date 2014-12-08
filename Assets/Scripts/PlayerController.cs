@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour {
 	
 	public GameDirector gameDirector;
 	
+	
 	private RaycastHit frontRaycastHit;	
 	private RaycastHit downRaycastHit;	
 	
@@ -42,7 +43,7 @@ public class PlayerController : MonoBehaviour {
 		if (isFrontHit) {
 			if (frontRaycastHit.transform.tag == "Ground") {
 				frontRayColor = Color.red;
-				frontBlocked = true;
+				//frontBlocked = true;
 			}
 		} else {
 			frontRayColor = Color.green;
@@ -82,6 +83,10 @@ public class PlayerController : MonoBehaviour {
 	void OnCollisionEnter(Collision col) {
 		if (col.transform.tag == "Muerte") {
 			gameDirector.GameOver();
+		}
+		
+		if (col.transform.tag == "Player") {
+			gameDirector.SpaceTimeConflict();
 		}
 	}
 	

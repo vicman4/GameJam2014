@@ -9,6 +9,7 @@ public class GameDirector : MonoBehaviour {
 	private List<Vector3> levelsTimeTravelPoints;		// Puntos a los que se puede viajar en el tiempo
 	private Vector3 nextBlockPosition;					// Posicion en la que se generara el proximo bloque
 	private GameObject player;							// Player generado
+	private GameObject doppelganger;					// Doble que viaja en el tiempo
 	private int lastGeneratedLevel = 0;					// Indice (de map) del proximo nivel generado
 	private int interactiveBlocksInThisLevel;			// Contador interno del numero de bloques interactivos pintados en el nivel actual
 	private int trapsBlocksInThisLevel;					// Contador interno del numero de bloques trampa pintados en el nivel actual
@@ -16,8 +17,10 @@ public class GameDirector : MonoBehaviour {
 	private int playerMarksCount;						// Contador interno de marcas de tiempo usadas
 	private int playerTimeTravelsCount;					// Contador interno de viajes en el tiempo usados
 	private List<GameObject> travelMarks;				// Lista de marcas de viaje en el tiempo instanciadas
+	private int musicThemeIndex;						// Indice de la musica actual
 
-
+	public GameObject timeSpaceConflictEffectPrefab;	// Efecto al producirse un conflicto espacio temporal (doppelganger toca a player)
+	public Vector3 timeSpaceConflictEffectOffset;
 	public GameObject playerPrefab;						// Prefab del personaje del jugador
 	public GameObject timeTravelMarkPrefab;				// Prefab que muestra una marca de viaje en el tiempo
 	public GameObject spawnBlockPrefab;					// Prefab del bloque inicial de cada nivel
@@ -25,6 +28,9 @@ public class GameDirector : MonoBehaviour {
 	public GameObject[] interactiveBlocks;				// Bloques con interruptores que afectan a bloques de niveles del futuro
 	public GameObject[]	trapsBlocks;					// Bloques con trampas del nivel actual
 	public GameObject[]	neutralBlocks;					// Bloques neutrales del nivel actual
+	
+	public AudioSource sfxGolpe;						// Sonido de golpe
+	public AudioSource[] musicThemes;					// Musica
 	
 	public GameObject panoramicCam;						// Camara panoramica
 	public Transform panoramicCamPoint;					// Punto de panoramica del mapa
@@ -108,6 +114,7 @@ public class GameDirector : MonoBehaviour {
 
 	void Start () {
 	
+		musicThemeIndex = 0;
 		playerLevel = 0;
 		playerMapLevel = 0;
 		playerMarksCount = 0;
@@ -129,7 +136,9 @@ public class GameDirector : MonoBehaviour {
 		player.GetComponent<PlayerController>().gameDirector = this;
 		playerTarget = player.transform;
 		playerController = player.transform.GetComponent<PlayerController>();
+		doppelganger = null;
 		map[0].TurnLights(true);
+		musicThemes[musicThemeIndex].Play();
 	}
 	
 	void Update() {
@@ -289,7 +298,11 @@ public class GameDirector : MonoBehaviour {
 	}
 	
 	public void GameOver() {
-		Debug.Log ("MUERTEEE!!!!");
+		if (doppelganger != null) {	// Ha muerto el doppleganger
+			PanoramicTravelDoppelgangerDie();
+		} else {
+			Debug.Log ("MUERTEEE!!!!");
+		}
 	}
 	
 	public void LeaveTimeTravelMark() {
@@ -306,23 +319,108 @@ public class GameDirector : MonoBehaviour {
 	
 	public void PanoramicVision(bool on) {
 		if (on) {
-			panoramicCam.transform.position = transform.position;
-			panoramicCam.transform.rotation = transform.rotation;
-			panoramicCam.camera.enabled = true;
-			camera.enabled = false;
-			playerController.Freeze(true);
-			LeanTween.move(panoramicCam, panoramicCamPoint.position, 1f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => { });
+			if (doppelganger == null) { // Solo un viaje en el tiempo a la vez
+				panoramicCam.transform.position = transform.position;
+				panoramicCam.transform.rotation = transform.rotation;
+				panoramicCam.camera.enabled = true;
+				camera.enabled = false;
+				playerController.Freeze(true);
+				playerController.enabled = false;
+				LeanTween.value(gameObject, MusicPitch, 1f, 0f, 3f).setEase(LeanTweenType.easeInOutSine);
+				LeanTween.move(panoramicCam, panoramicCamPoint.position, 2f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => { });
+			}
 		} else {
 			//panoramicCam.transform.parent = transform;
-			LeanTween.move(panoramicCam, transform.position, 1f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => {
+			LeanTween.value(gameObject, MusicPitch, 0f, 1f, 2f).setEase(LeanTweenType.easeInOutSine);
+			LeanTween.move(panoramicCam, transform.position, 2f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => {
 				panoramicCam.camera.enabled = false;
 				camera.enabled = true;
+				playerController.enabled = true;
 				playerController.Freeze(false);
 			});
 		}
+	}
+	
+	
+	public void PanoramicTravelDoppelgangerDie() {
+			panoramicCam.transform.position = transform.position;
+			panoramicCam.transform.rotation = transform.rotation;
+			panoramicCam.camera.enabled = true;
+			playerController.Freeze(true);
+			playerController.enabled = false;
+			
+			// Retomamos el foco al player
+			playerTarget = player.transform;
+			playerController = player.transform.GetComponent<PlayerController>();
+			
+			LeanTween.value(gameObject, MusicPitch, 1f, 0f, 3f).setEase(LeanTweenType.easeInOutSine);
+			LeanTween.move(panoramicCam, panoramicCamPoint.position, 2f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => { 
+				// Desaparece el Doppelganger
+				Destroy(doppelganger);
+				doppelganger = null;
+				
+				LeanTween.value(gameObject, MusicPitch, 0f, 1f, 2f).setEase(LeanTweenType.easeInOutSine);
+				LeanTween.move(panoramicCam, transform.position, 2f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => {
+					panoramicCam.camera.enabled = false;
+					playerController.enabled = true;
+					playerController.Freeze(false);
+				});
+			});
+	}
+	
+	
+	public void TravelTo(Vector3 position) {
+		// Generamos el Doppelganger
+		doppelganger = (GameObject)Instantiate(playerPrefab, position, Quaternion.identity);
+		doppelganger.transform.Rotate(0f, 90f, 0f);
+		doppelganger.GetComponent<PlayerController>().gameDirector = this;
 		
+		// Enfocamos al Doppelganger
+		playerTarget = doppelganger.transform;
+		
+		// Tomamos el control del Doppelganger
+		playerController = doppelganger.transform.GetComponent<PlayerController>();
+		transform.position = doppelganger.transform.position + cameraTargetAdjustedPosition;
+		PanoramicVision(false);
+	}
+	
+	
+	public void SpaceTimeConflict() {
+		GameObject effect = (GameObject)Instantiate(timeSpaceConflictEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
+		sfxGolpe.Play();
+		Destroy(effect, 10.0f);
+		Destroy(doppelganger);
+		doppelganger = null;
+		Destroy(player);
+		LeanTween.rotateAround(transform.gameObject, Vector3.forward, 5f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5);
+		LeanTween.rotateAround(transform.gameObject, Vector3.forward, 2f, 0.15f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5).setDelay(0.05f);
+		GameOver();
+	}
+	
+	
+	public bool IsDoppelganger() {
+		return (doppelganger != null);
+	}
+	
+	public void MusicPitch(float pitch) {
+		musicThemes[musicThemeIndex].pitch = pitch;
 		
 	}
 	
+	public void MusicVolume(float volume) {
+		musicThemes[musicThemeIndex].volume = volume;
+	}
+	
+	public void NextTheme() {
+		LeanTween.value(gameObject, MusicVolume, 0.2f, 0f, 3f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() =>{
+			musicThemes[musicThemeIndex].Stop ();
+			musicThemes[musicThemeIndex].volume = 0.2f;
+			musicThemeIndex += 1;
+			if (musicThemeIndex >= musicThemes.Length) musicThemeIndex = 0;
+			musicThemes[musicThemeIndex].volume = 0;
+			musicThemes[musicThemeIndex].Play();
+			LeanTween.value(gameObject, MusicVolume, 0f, 0.2f, 3f).setEase(LeanTweenType.easeInOutSine);
+		});
+	}
 	
 }

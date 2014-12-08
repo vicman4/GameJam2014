@@ -15,9 +15,15 @@ public class BlockEndExitController : MonoBehaviour {
 			gameDirector.map[0].TurnLights(true);
 		} else {
 			gameDirector.playerLevel += 1;
-			gameDirector.map[mapIndex].TurnLights(false);
+			//gameDirector.map[mapIndex].TurnLights(false);
 			gameDirector.map[mapIndex+1].TurnLights(true);
 		}
-		other.transform.position = nextPosition;
+		
+		if (gameDirector.IsDoppelganger()) {
+			gameDirector.GameOver();
+		} else {
+			gameDirector.NextTheme();
+			other.transform.position = nextPosition;
+		}
 	}
 }
