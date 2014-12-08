@@ -20,6 +20,7 @@ public class GameDirector : MonoBehaviour {
 	private int musicThemeIndex;						// Indice de la musica actual
 
 	public GameObject deadEffectPrefab;					// Efecto al morir
+	public GameObject deadDoppelgangerEffectPrefab;		// Efecto morir doppelganger
 	public GameObject timeSpaceConflictEffectPrefab;	// Efecto al producirse un conflicto espacio temporal (doppelganger toca a player)
 	public Vector3 timeSpaceConflictEffectOffset;
 	public GameObject playerPrefab;						// Prefab del personaje del jugador
@@ -30,6 +31,7 @@ public class GameDirector : MonoBehaviour {
 	public GameObject[]	trapsBlocks;					// Bloques con trampas del nivel actual
 	public GameObject[]	neutralBlocks;					// Bloques neutrales del nivel actual
 	
+	public AudioSource sfxExlosionImplosion;			// Sonido de muerte player
 	public AudioSource sfxGolpe;						// Sonido de golpe
 	public AudioSource[] musicThemes;					// Musica
 	
@@ -306,23 +308,22 @@ public class GameDirector : MonoBehaviour {
 	public void GameOver() {
 		time_score = Time.timeSinceLevelLoad;
 		if (doppelganger != null) {	// Ha muerto el doppleganger
-			GameObject effect = (GameObject)Instantiate(deadEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
+			GameObject effect = (GameObject)Instantiate(deadDoppelgangerEffectPrefab, doppelganger.transform.position, Quaternion.identity);
 			PanoramicTravelDoppelgangerDie();
 		} else {
-			GameObject effect = (GameObject)Instantiate(deadEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
-			sfxGolpe.volume = 0.5f;
-			sfxGolpe.Play();
-			Destroy(effect, 10.0f);
-			Destroy(player);
-			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 0.1f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(0.1f).setOnComplete(() => {
-				LeanTween.rotateAround(transform.gameObject, Vector3.forward, 0f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(1.4f).setOnComplete(() => {
-					sfxGolpe.volume = 1f;
-					sfxGolpe.Play();
+			if (player != null) {
+				GameObject effect = (GameObject)Instantiate(deadEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
+				sfxExlosionImplosion.Play ();
+				Destroy(effect, 10.0f);
+				Destroy(player);
+				player=null;
+				LeanTween.rotateAround(transform.gameObject, Vector3.forward, 0.1f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(0.1f).setOnComplete(() => {
 					LeanTween.rotateAround(transform.gameObject, Vector3.forward, 10f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(10).setOnComplete(() => {
-						// SHOW UI STATS
 					});
 				});
-			});
+			} else {
+				// SHOW UI STATS
+			}
 		}
 
 
@@ -358,8 +359,10 @@ public class GameDirector : MonoBehaviour {
 			LeanTween.move(panoramicCam, transform.position, 2f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => {
 				panoramicCam.camera.enabled = false;
 				camera.enabled = true;
-				playerController.enabled = true;
-				playerController.Freeze(false);
+				if (player != null) {
+					playerController.enabled = true;
+					playerController.Freeze(false);
+				}
 			});
 		}
 	}
@@ -409,15 +412,18 @@ public class GameDirector : MonoBehaviour {
 	
 	
 	public void SpaceTimeConflict() {
-		GameObject effect = (GameObject)Instantiate(timeSpaceConflictEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
-		sfxGolpe.Play();
-		Destroy(effect, 10.0f);
-		Destroy(doppelganger);
-		doppelganger = null;
-		Destroy(player);
-		LeanTween.rotateAround(transform.gameObject, Vector3.forward, 5f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5);
-		LeanTween.rotateAround(transform.gameObject, Vector3.forward, 2f, 0.15f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5).setDelay(0.05f);
-		GameOver();
+		if (player != null) {
+			GameObject effect = (GameObject)Instantiate(timeSpaceConflictEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
+			sfxGolpe.Play();
+			Destroy(effect, 10.0f);
+			Destroy(doppelganger);
+			doppelganger = null;
+			Destroy(player);
+			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 5f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5);
+			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 2f, 0.15f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5).setDelay(0.05f);
+			player = null;
+			GameOver();
+		}
 	}
 	
 	
