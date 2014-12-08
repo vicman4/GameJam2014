@@ -19,6 +19,7 @@ public class GameDirector : MonoBehaviour {
 	private List<GameObject> travelMarks;				// Lista de marcas de viaje en el tiempo instanciadas
 	private int musicThemeIndex;						// Indice de la musica actual
 
+	public GameObject deadEffectPrefab;					// Efecto al morir
 	public GameObject timeSpaceConflictEffectPrefab;	// Efecto al producirse un conflicto espacio temporal (doppelganger toca a player)
 	public Vector3 timeSpaceConflictEffectOffset;
 	public GameObject playerPrefab;						// Prefab del personaje del jugador
@@ -299,9 +300,23 @@ public class GameDirector : MonoBehaviour {
 	
 	public void GameOver() {
 		if (doppelganger != null) {	// Ha muerto el doppleganger
+			GameObject effect = (GameObject)Instantiate(deadEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
 			PanoramicTravelDoppelgangerDie();
 		} else {
-			Debug.Log ("MUERTEEE!!!!");
+			GameObject effect = (GameObject)Instantiate(deadEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
+			sfxGolpe.volume = 0.5f;
+			sfxGolpe.Play();
+			Destroy(effect, 10.0f);
+			Destroy(player);
+			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 0.1f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(0.1f).setOnComplete(() => {
+				LeanTween.rotateAround(transform.gameObject, Vector3.forward, 0f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(1.4f).setOnComplete(() => {
+					sfxGolpe.volume = 1f;
+					sfxGolpe.Play();
+					LeanTween.rotateAround(transform.gameObject, Vector3.forward, 10f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(10).setOnComplete(() => {
+						// SHOW UI STATS
+					});
+				});
+			});
 		}
 	}
 	

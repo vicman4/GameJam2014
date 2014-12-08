@@ -22,7 +22,7 @@ public class BlockEndExitController : MonoBehaviour {
 		if (gameDirector.IsDoppelganger()) {
 			gameDirector.GameOver();
 		} else {
-			gameDirector.NextTheme();
+			//gameDirector.NextTheme();
 			other.transform.position = nextPosition;
 		}
 	}

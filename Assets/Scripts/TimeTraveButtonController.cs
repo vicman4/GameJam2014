@@ -17,6 +17,8 @@ public class TimeTraveButtonController : MonoBehaviour {
 	}
 	
 	void OnMouseDown() {
-		gameDirector.TravelTo(transform.parent.position);
+		if (!gameDirector.IsDoppelganger()) {
+			gameDirector.TravelTo(transform.parent.position);
+		}
 	}
 }
