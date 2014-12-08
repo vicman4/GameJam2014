@@ -7,14 +7,14 @@ public class AffectedItemScript : MonoBehaviour {
 	public bool useToggle = false;
 	public bool useActivateScript = false;
 
-	bool _toggle = true;
+	public bool _toggle = true;
 	Animator animator;  // La variable de la animación será un booleano activate
 
 	// Use this for initialization
 	void Start () {
 		if(useAnimation)
 			animator = GetComponent<Animator> ();
-
+		animator.SetBool ("activate", _toggle);
 
 	}
 	
