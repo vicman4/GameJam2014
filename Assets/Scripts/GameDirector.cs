@@ -25,6 +25,10 @@ public class GameDirector : MonoBehaviour {
 	public GameObject[] interactiveBlocks;				// Bloques con interruptores que afectan a bloques de niveles del futuro
 	public GameObject[]	trapsBlocks;					// Bloques con trampas del nivel actual
 	public GameObject[]	neutralBlocks;					// Bloques neutrales del nivel actual
+	
+	public GameObject panoramicCam;						// Camara panoramica
+	public Transform panoramicCamPoint;					// Punto de panoramica del mapa
+	public Vector3 panoramicCamOffset;					// Offset de ajuste de la posicion de la camara panoramica
 
 	public Vector3 mapStartPosition = Vector3.zero;		// Posicion de inicio de pintado del mapa
 	public int interactiveBlocksPerLevel = 1;			// Numero de bloques interactivos del futuro por nivel
@@ -130,8 +134,15 @@ public class GameDirector : MonoBehaviour {
 	
 	void Update() {
 		if (Input.GetKey(KeyCode.Return)) {
-			
 			LeaveTimeTravelMark();
+		}
+		
+		if (Input.GetKey(KeyCode.Space)) {
+			PanoramicVision(true);
+		}
+		
+		if (Input.GetKey(KeyCode.Escape)) {
+			PanoramicVision(false);
 		}
 	}
 	
@@ -245,8 +256,12 @@ public class GameDirector : MonoBehaviour {
 						}
 					}
 				}
+				if (cell == (widthSizeInBlocks/2) && level == (heightSizeInBlocks/2)) { // Si este bloque es el centro del mapa
+					// Colocamos el punto de camara panoramica
+					panoramicCamPoint.position = nextBlock.transform.position + panoramicCamOffset;
+				}
 				nextBlockPosition = new Vector3(nextBlockPosition.x + blockWidth, nextBlockPosition.y, nextBlockPosition.z);
-			}
+			} // End For Bloques centrales
 			
 			// Generando Bloque de Salida/Exit
 			//Debug.Log("Generando bloque de Salida de Level");
@@ -287,6 +302,26 @@ public class GameDirector : MonoBehaviour {
 		playerController.StopAndAction();
 		GameObject timeTravelMark = (GameObject)Instantiate(timeTravelMarkPrefab, player.transform.position, Quaternion.identity);
 		travelMarks.Add(timeTravelMark);
+	}
+	
+	public void PanoramicVision(bool on) {
+		if (on) {
+			panoramicCam.transform.position = transform.position;
+			panoramicCam.transform.rotation = transform.rotation;
+			panoramicCam.camera.enabled = true;
+			camera.enabled = false;
+			playerController.Freeze(true);
+			LeanTween.move(panoramicCam, panoramicCamPoint.position, 1f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => { });
+		} else {
+			//panoramicCam.transform.parent = transform;
+			LeanTween.move(panoramicCam, transform.position, 1f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => {
+				panoramicCam.camera.enabled = false;
+				camera.enabled = true;
+				playerController.Freeze(false);
+			});
+		}
+		
+		
 	}
 	
 	

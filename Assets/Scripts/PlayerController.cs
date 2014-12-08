@@ -89,5 +89,14 @@ public class PlayerController : MonoBehaviour {
 		animController.SetTrigger("StopAndAction");
 	}
 	
+	public void Freeze(bool on) {
+		if (on) {
+			animController.enabled = false;
+		} else {
+			animController.enabled = true;
+		}
+	}
+	
+	
 	
 }
