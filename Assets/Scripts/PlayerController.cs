@@ -33,13 +33,15 @@ public class PlayerController : MonoBehaviour {
 	
 	private Color frontRayColor;
 	private Color downRayColor;
+
+
 	
 	void Start () {
 		animController = GetComponent<Animator>();					  
 	}
 	
 	void FixedUpdate () {
-	
+
 		isFrontHit = Physics.Raycast (transform.position+frontRayOffset, transform.forward,out frontRaycastHit, frontRayRange, frontRayHitsOnLayers);
 		if (isFrontHit) {
 			if (frontRaycastHit.transform.tag == "Ground") {
