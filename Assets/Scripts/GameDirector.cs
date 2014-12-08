@@ -433,14 +433,14 @@ public class GameDirector : MonoBehaviour {
 	}
 	
 	public void NextTheme() {
-		LeanTween.value(gameObject, MusicVolume, 0.2f, 0f, 3f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() =>{
+		LeanTween.value(gameObject, MusicVolume, 0.75f, 0f, 3f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() =>{
 			musicThemes[musicThemeIndex].Stop ();
-			musicThemes[musicThemeIndex].volume = 0.2f;
+			musicThemes[musicThemeIndex].volume = 0.75f;
 			musicThemeIndex += 1;
 			if (musicThemeIndex >= musicThemes.Length) musicThemeIndex = 0;
 			musicThemes[musicThemeIndex].volume = 0;
 			musicThemes[musicThemeIndex].Play();
-			LeanTween.value(gameObject, MusicVolume, 0f, 0.2f, 3f).setEase(LeanTweenType.easeInOutSine);
+			LeanTween.value(gameObject, MusicVolume, 0f, 0.75f, 3f).setEase(LeanTweenType.easeInOutSine);
 		});
 	}
 	
