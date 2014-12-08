@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour {
 	private Animator animController;							
 	public float animSpeed = 1f;				
 	public Vector3 lookTarget;
+	public float speed = 1;
 	
 	public bool grounded;
 	public bool frontBlocked;
@@ -72,7 +73,7 @@ public class PlayerController : MonoBehaviour {
 		}
 	
 		if (!stop) {
-			animController.SetFloat("Speed", 1);							
+			animController.SetFloat("Speed", speed);							
 		} else {
 			animController.SetFloat("Speed", 0);											
 		}
@@ -100,6 +101,10 @@ public class PlayerController : MonoBehaviour {
 		} else {
 			animController.enabled = true;
 		}
+	}
+
+	public void setSpeed(int new_speed){
+		speed = new_speed;
 	}
 	
 	
