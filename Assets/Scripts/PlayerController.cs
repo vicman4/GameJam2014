@@ -63,7 +63,7 @@ public class PlayerController : MonoBehaviour {
 			}
 		} else {
 			downRayColor = Color.red;
-			grounded = false;
+			//grounded = false;
 			animController.SetBool("JumpDown", true);
 		}
 		Debug.DrawRay(transform.position + downRayOffset, Vector3.down  * downRayRange, downRayColor);
