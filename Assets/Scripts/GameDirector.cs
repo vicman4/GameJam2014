@@ -193,9 +193,13 @@ public class GameDirector : MonoBehaviour {
 		}
 		
 		// Rellenamos los niveles con bloques
+		int neutralBlocksPerLevel = widthSizeInBlocks - interactiveBlocksPerLevel - trapsBlocksPerLevel;
+		if (neutralBlocksPerLevel < 0) neutralBlocksPerLevel = 0;
+		int neutralBlocksInThisLevel = 0;
 		for (int level=0; level < heightSizeInBlocks; level++) {
 			interactiveBlocksInThisLevel = 0;
 			trapsBlocksInThisLevel = 0;
+			neutralBlocksInThisLevel = 0;
 			
 			// Generando Bloque de Inicio/Spawn
 			//Debug.Log("Generando bloque de inicio de Level");
@@ -219,8 +223,11 @@ public class GameDirector : MonoBehaviour {
 						switch (Random.Range(0,3)) {
 							case 0:
 								// Bloque de tipo neutral
-								nextBlockIndex = Random.Range(0, neutralBlocks.Length);
-								nextBlock = (GameObject)Instantiate(neutralBlocks[nextBlockIndex], nextBlockPosition, Quaternion.identity);
+								if (neutralBlocksInThisLevel < neutralBlocksPerLevel) {
+									nextBlockIndex = Random.Range(0, neutralBlocks.Length);
+									nextBlock = (GameObject)Instantiate(neutralBlocks[nextBlockIndex], nextBlockPosition, Quaternion.identity);
+									neutralBlocksInThisLevel += 1;
+								}
 								break;
 							case 1: 
 								// Bloque de tipo switch Interactivo del futuro

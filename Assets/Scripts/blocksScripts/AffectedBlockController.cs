@@ -12,7 +12,7 @@ public class AffectedBlockController : MonoBehaviour {
 		affectedItems = GetComponentsInChildren<AffectedItemScript> ();
 		foreach (AffectedItemScript item in affectedItems) {
 			item.activate();
-				}
+		}
 	}
 
 
