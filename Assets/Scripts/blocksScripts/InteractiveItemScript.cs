@@ -10,7 +10,12 @@ public class InteractiveItemScript : MonoBehaviour {
 		interactiveBlocController = transform.parent.GetComponent<InteractiveBlockController> ();
 		affectedBlockController = interactiveBlocController.affectedBlockController;
 		animator = GetComponent<Animator> ();
+		toggle =(Random.Range(0, 2) == 1);
+		if (animator) {
+			animator.SetBool ("activate", toggle);
+		}
 	}
+
 
 	void OnMouseDown(){
 		Debug.Log ("Mouse Down");
@@ -21,4 +26,6 @@ public class InteractiveItemScript : MonoBehaviour {
 		}
 
 	}
+
+
 }

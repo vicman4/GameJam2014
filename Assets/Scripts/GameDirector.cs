@@ -155,7 +155,7 @@ public class GameDirector : MonoBehaviour {
 		}
 		
 		if (Input.GetKey(KeyCode.Escape)) {
-			PanoramicVision(false);
+			Application.LoadLevel("Menu");
 		}
 
 
@@ -319,9 +319,11 @@ public class GameDirector : MonoBehaviour {
 				player=null;
 				LeanTween.rotateAround(transform.gameObject, Vector3.forward, 0.1f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(0.1f).setOnComplete(() => {
 					LeanTween.rotateAround(transform.gameObject, Vector3.forward, 10f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(10).setDelay(1.4f).setOnComplete(() => {
+						Application.LoadLevel("Menu");
 					});
 				});
 			} else {
+				Application.LoadLevel("Menu");
 				// SHOW UI STATS
 			}
 		}
@@ -343,7 +345,7 @@ public class GameDirector : MonoBehaviour {
 	
 	public void PanoramicVision(bool on) {
 		if (on) {
-			if (doppelganger == null) { // Solo un viaje en el tiempo a la vez
+			if (doppelganger == null && travelMarks.Count > 0) { // Solo un viaje en el tiempo a la vez
 				panoramicCam.transform.position = transform.position;
 				panoramicCam.transform.rotation = transform.rotation;
 				panoramicCam.camera.enabled = true;

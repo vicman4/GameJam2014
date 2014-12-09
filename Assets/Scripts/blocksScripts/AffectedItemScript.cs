@@ -14,6 +14,8 @@ public class AffectedItemScript : MonoBehaviour {
 	void Start () {
 		if(useAnimation)
 			animator = GetComponent<Animator> ();
+		_toggle =(Random.Range(0, 2) == 1);
+
 		animator.SetBool ("activate", _toggle);
 
 	}
