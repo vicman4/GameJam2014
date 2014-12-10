@@ -428,10 +428,11 @@ public class GameDirector : MonoBehaviour {
 			Destroy(doppelganger);
 			doppelganger = null;
 			Destroy(player);
-			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 5f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5);
-			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 2f, 0.15f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5).setDelay(0.05f);
 			player = null;
-			GameOver();
+			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 5f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(5);
+			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 2f, 0.15f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(0.05f).setOnComplete(() => {
+				GameOver();
+			});
 		}
 	}
 	
