@@ -364,8 +364,8 @@ public class GameDirector : MonoBehaviour {
 			}
 		} else {
 			//panoramicCam.transform.parent = transform;
-			LeanTween.value(gameObject, MusicPitch, 0f, 1f, 2f).setEase(LeanTweenType.easeInOutSine);
-			LeanTween.move(panoramicCam, transform.position, 2f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => {
+			LeanTween.value(gameObject, MusicPitch, 0f, 1f, 1f).setEase(LeanTweenType.easeInOutSine);
+			LeanTween.move(panoramicCam, transform.position, 1f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => {
 				panoramicCam.camera.enabled = false;
 				camera.enabled = true;
 				if (player != null) {
