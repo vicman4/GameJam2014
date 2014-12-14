@@ -17,7 +17,7 @@ public class AffectedItemScript : MonoBehaviour {
 		_toggle = initialState;
 		if (useRandomInitialState) _toggle =(Random.Range(0, 2) == 1);
 		animator.SetBool ("activate", _toggle); // Posicionamos estado inicial
-		_toggle = !_toggle; // La siguiente activación será en el estado contrario
+		_toggle = !_toggle; // La siguiente activación será en el estado contrario\
 	}
 	
 	public void activate(){
