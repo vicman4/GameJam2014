@@ -9,14 +9,14 @@ public class dragablePaltform : MonoBehaviour {
 	public float relativeMove = 0.1f;
 	public  Vector3 limitTop, limitDown, limitLeft, limitRigth;
 	
-	
+	private bool isKinematicInitialState;
 
 	void Start(){
 		limitLeft = transform.parent.Find ("left").position;
 		limitRigth = transform.parent.Find ("right").position;
 		limitDown = transform.parent.Find ("down").position;
 		limitTop = transform.parent.Find ("top").position;
-
+		isKinematicInitialState = rigidbody.isKinematic;
 	}
 	
 	void OnMouseDown() {
@@ -25,7 +25,7 @@ public class dragablePaltform : MonoBehaviour {
 	
 	
 	void OnMouseUp() {
-		rigidbody.isKinematic = false;
+		rigidbody.isKinematic = isKinematicInitialState;
 	}
 	
 	
