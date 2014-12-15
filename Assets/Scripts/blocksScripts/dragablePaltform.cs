@@ -24,11 +24,14 @@ public class dragablePaltform : MonoBehaviour {
 	}
 	
 	
+	void OnMouseUp() {
+		rigidbody.isKinematic = false;
+	}
 	
 	
 	void OnMouseDrag() {
 
-		
+		rigidbody.isKinematic = true;
 		curPosition = Input.mousePosition;
 		curPosition = (curPosition - scanPos)*relativeMove;
 		curPosition.x  = Mathf.Clamp(curPosition.x+transform.position.x, limitLeft.x,limitRigth.x);
