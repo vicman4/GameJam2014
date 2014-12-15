@@ -5,26 +5,32 @@ public class PlayerController : MonoBehaviour {
 
 	private Animator animController;							
 	public float animSpeed = 1f;				
-	public Vector3 lookTarget;
 	public float speed = 1;
+	public bool canFall = false; 	// Si el jugador se puede caer. En caso negativo el jugador se para en los precipicios u obstaculos.
 	
 	public bool grounded;
 	public bool frontBlocked;
 	
 	public bool isDownHit;
 	public bool isFrontHit;
+	private bool downRay1Hit;
+	private bool downRay2Hit;
 	
 	public LayerMask frontRayHitsOnLayers;
 	public LayerMask downRayHitsOnLayers;
 	
 	public float frontRayRange;
-	public float downRayRange;
+	public float downRay1Range;
+	public float downRay2Range;
 	
 	public Vector3 frontRayOffset;
-	public Vector3 downRayOffset;
+	public Vector3 downRay1Offset;
+	public Vector3 downRay1Direction;
+	public Vector3 downRay2Offset;
+	public Vector3 downRay2Direction;
+	
 	
 	public GameDirector gameDirector;
-	
 	
 	private RaycastHit frontRaycastHit;	
 	private RaycastHit downRaycastHit;	
@@ -37,7 +43,9 @@ public class PlayerController : MonoBehaviour {
 
 	
 	void Start () {
-		animController = GetComponent<Animator>();					  
+		animController = GetComponent<Animator>();		
+		downRay1Hit = false	;
+		downRay2Hit = false	;  
 	}
 	
 	void FixedUpdate () {
@@ -54,21 +62,40 @@ public class PlayerController : MonoBehaviour {
 		}
 		Debug.DrawRay(transform.position + frontRayOffset, transform.forward  * frontRayRange, frontRayColor);
 		
-		isDownHit = Physics.Raycast (transform.position+downRayOffset, Vector3.down,out downRaycastHit, downRayRange, downRayHitsOnLayers);
+		isDownHit = Physics.Raycast (transform.position+downRay1Offset, transform.TransformDirection(downRay1Direction),out downRaycastHit, downRay1Range, downRayHitsOnLayers);
 		if (isDownHit) {
 			if (downRaycastHit.transform.tag == "Ground") {
+				downRay1Hit = true;
 				downRayColor = Color.green;
-				grounded = true;
-				animController.SetBool("JumpDown", false);
 			}
 		} else {
+			downRay2Hit = false;
 			downRayColor = Color.red;
-			//grounded = false;
-			animController.SetBool("JumpDown", true);
 		}
-		Debug.DrawRay(transform.position + downRayOffset, Vector3.down  * downRayRange, downRayColor);
+		Debug.DrawRay(transform.position + downRay1Offset, transform.TransformDirection(downRay1Direction) * downRay1Range, downRayColor);
+		
+		isDownHit = Physics.Raycast (transform.position+downRay2Offset, transform.TransformDirection(downRay2Direction),out downRaycastHit, downRay2Range, downRayHitsOnLayers);
+		if (isDownHit) {
+			if (downRaycastHit.transform.tag == "Ground") {
+				downRay2Hit = true;
+				downRayColor = Color.green;
+			}
+		} else {
+			downRay2Hit = false;
+			downRayColor = Color.red;
+		}
+		Debug.DrawRay(transform.position + downRay2Offset, transform.TransformDirection(downRay2Direction) * downRay2Range, downRayColor);
+		
+		if (downRay1Hit && downRay2Hit) {
+			grounded = true;
+			animController.SetBool("Grounded",true);
+		} else {
+			grounded = false;
+			animController.SetBool("Grounded", false);
+			animController.SetTrigger("JumpDown");
+		}
 	
-		if (frontBlocked || !grounded) {
+		if (canFall && (frontBlocked || !grounded)) {
 			stop = true;
 		} else {
 			stop = false;

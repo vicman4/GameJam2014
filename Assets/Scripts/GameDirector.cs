@@ -85,7 +85,7 @@ public class GameDirector : MonoBehaviour {
 		}
 		
 		public Vector3 SpawnPosition() {
-			return blocks[0].transform.GetChild(0).position;
+			return blocks[0].transform.Cast<Transform>().Where(c=>c.gameObject.tag == "SpawnPoint").ToArray()[0].position;
 		}
 		
 		public int BlocksCount() {
@@ -134,9 +134,10 @@ public class GameDirector : MonoBehaviour {
 		travelMarks = new List<GameObject>();
 		
 		nextBlockPosition = GenerateMapAt(mapStartPosition);
-		player = (GameObject)Instantiate(playerPrefab, nextBlockPosition, Quaternion.identity);
+		Debug.Log(map[0].SpawnPosition());
+		player = (GameObject)Instantiate(playerPrefab, map[0].SpawnPosition(), Quaternion.identity);
 		player.transform.Rotate(0f, 90f, 0f);
-		player.transform.position = map[0].SpawnPosition();
+		//player.transform.position = map[0].SpawnPosition();
 		player.GetComponent<PlayerController>().gameDirector = this;
 		playerTarget = player.transform;
 		playerController = player.transform.GetComponent<PlayerController>();

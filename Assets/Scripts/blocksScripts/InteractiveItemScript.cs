@@ -6,6 +6,7 @@ public class InteractiveItemScript : MonoBehaviour {
 	private Animator animator;
 	private InteractiveBlockController interactiveBlocController;
 	public bool toggle = true;
+	
 	void Start(){
 		interactiveBlocController = transform.parent.GetComponent<InteractiveBlockController> ();
 		affectedBlockController = interactiveBlocController.affectedBlockController;
@@ -21,8 +22,8 @@ public class InteractiveItemScript : MonoBehaviour {
 		Debug.Log ("Mouse Down");
 		affectedBlockController.toggle ();
 		if (animator) {
-			animator.SetBool ("activate", toggle);
 			toggle = !toggle;
+			animator.SetBool ("activate", toggle);
 		}
 
 	}
