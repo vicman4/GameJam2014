@@ -316,24 +316,22 @@ public class GameDirector : MonoBehaviour {
 	public void GameOver() {
 		time_score = Time.timeSinceLevelLoad;
 		if (doppelganger != null) {	// Ha muerto el doppleganger
-			GameObject effect = (GameObject)Instantiate(deadDoppelgangerEffectPrefab, doppelganger.transform.position, Quaternion.identity);
 			PanoramicTravelDoppelgangerDie();
-		} else {
-			if (player != null) {
-				GameObject effect = (GameObject)Instantiate(deadEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
-				sfxExlosionImplosion.Play ();
-				Destroy(effect, 10.0f);
-				Destroy(player);
-				player=null;
-				LeanTween.rotateAround(transform.gameObject, Vector3.forward, 0.1f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(0.1f).setOnComplete(() => {
-					LeanTween.rotateAround(transform.gameObject, Vector3.forward, 10f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(10).setDelay(1.4f).setOnComplete(() => {
-						Application.LoadLevel("Menu");
-					});
+		} 
+		if (player != null) {
+			GameObject effect = (GameObject)Instantiate(deadEffectPrefab, player.transform.position + timeSpaceConflictEffectOffset, Quaternion.identity);
+			sfxExlosionImplosion.Play ();
+			Destroy(effect, 10.0f);
+			Destroy(player);
+			player=null;
+			LeanTween.rotateAround(transform.gameObject, Vector3.forward, 0.1f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(7).setDelay(0.1f).setOnComplete(() => {
+				LeanTween.rotateAround(transform.gameObject, Vector3.forward, 10f, 0.1f).setEase( LeanTweenType.easeSpring ).setLoopClamp().setRepeat(10).setDelay(1.4f).setOnComplete(() => {
+					Application.LoadLevel("Menu");
 				});
-			} else {
-				Application.LoadLevel("Menu");
-				// SHOW UI STATS
-			}
+			});
+		} else {
+			Application.LoadLevel("Menu");
+			// SHOW UI STATS
 		}
 
 
@@ -363,6 +361,10 @@ public class GameDirector : MonoBehaviour {
 				LeanTween.value(gameObject, MusicPitch, 1f, 0f, 3f).setEase(LeanTweenType.easeInOutSine);
 				LeanTween.move(panoramicCam, panoramicCamPoint.position, 2f).setEase(LeanTweenType.easeInOutSine).setOnComplete(() => { });
 			}
+			
+			if (doppelganger != null) {
+				PanoramicTravelDoppelgangerDie();
+			}
 		} else {
 			//panoramicCam.transform.parent = transform;
 			LeanTween.value(gameObject, MusicPitch, 0f, 1f, 1f).setEase(LeanTweenType.easeInOutSine);
@@ -379,6 +381,7 @@ public class GameDirector : MonoBehaviour {
 	
 	
 	public void PanoramicTravelDoppelgangerDie() {
+			GameObject effect = (GameObject)Instantiate(deadDoppelgangerEffectPrefab, doppelganger.transform.position, Quaternion.identity);
 			panoramicCam.transform.position = transform.position;
 			panoramicCam.transform.rotation = transform.rotation;
 			panoramicCam.camera.enabled = true;
